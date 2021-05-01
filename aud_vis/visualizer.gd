@@ -4,7 +4,7 @@ extends Node2D
 # Gonkee's audio visualiser for Godot 3.2 - full tutorial https://youtu.be/AwgSICbGxJM
 # If you use this, I would prefer if you gave credit to me and my channel
 
-onready var spectrum = AudioServer.get_bus_effect_instance(0, 0)
+var spectrum = AudioServer.get_bus_effect_instance(0, 0)
 
 export(String, "Circular", "Linear") var shape = "Linear" setget new_shape
 export var total_w := 400 setget new_width
@@ -47,7 +47,7 @@ func new_height(_new_value):
 	total_h = _new_value
 	refresh()
 
-func _ready():
+func _enter_tree():
 	#max_db += get_parent().volume_db
 	#min_db += get_parent().volume_db
 	
@@ -78,13 +78,12 @@ func _process(delta):
 		mag += 0.3 * (freq - min_freq) / (max_freq - min_freq)
 		mag = clamp(mag, 0.05, 1)
 		
-		histogram[i] = lerp(histogram[i], mag, accel * delta)
+		if not Engine.editor_hint:
+			histogram[i] = lerp(histogram[i], mag, accel * delta)
 	
 	update()
 
 func _draw():
-	
-	# Horizontal Visualiser
 	var draw_pos = Vector2(12, 0)
 	var w_interval = total_w / definition
 	
