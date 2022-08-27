@@ -4,8 +4,9 @@ extends Node2D
 # Gonkee's audio visualiser for Godot 3.2 - full tutorial https://youtu.be/AwgSICbGxJM
 # If you use this, I would prefer if you gave credit to me and my channel
 
-var spectrum = AudioServer.get_bus_effect_instance(0, 0)
 
+export(int) var audio_bus = 0
+export(int) var effect_id = 0
 export(String, "Circular", "Linear") var shape = "Linear" setget new_shape
 export var total_w := 400 setget new_width
 export var total_h := 200 setget new_height
@@ -20,8 +21,19 @@ export var max_freq := 20000.0
 export var max_db = 0
 export var min_db = -40
 
+var spectrum = AudioServer.get_bus_effect_instance(audio_bus, effect_id)
+
 var accel = 20
 var histogram = []
+
+func _ready():
+	if spectrum:
+		if not(spectrum is AudioEffectSpectrumAnalyzerInstance):
+			printerr("Effect at index ",effect_id," is not SpectrumAnalyzer! Bus: ",audio_bus)
+			set_process(false)
+	else:
+		printerr("Please add effect SpectrumAnalyzer to audio bus ",audio_bus," in order to make AudioVisualiser work.")
+		set_process(false)
 
 func new_color_e(_new_value):
 	editor_color = _new_value
@@ -56,11 +68,11 @@ func _enter_tree():
 	
 
 func _process(delta):
+	if not(spectrum): return
 	var freq = min_freq
 	var interval = (max_freq - min_freq) / definition
 	
 	for i in range(definition):
-		
 		var freqrange_low = float(freq - min_freq) / float(max_freq - min_freq)
 		freqrange_low = freqrange_low * freqrange_low * freqrange_low * freqrange_low
 		freqrange_low = lerp(min_freq, max_freq, freqrange_low)
